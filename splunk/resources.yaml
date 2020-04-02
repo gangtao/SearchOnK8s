@@ -23,8 +23,7 @@ spec:
       volumes:
         # Splunk Data
         - name: data
-          hostPath:
-            path: /vol/splunk/data
+          emptyDir: {}
         # Splunk Config. Shared with config-backup container
         - name: config
           emptyDir: {}
