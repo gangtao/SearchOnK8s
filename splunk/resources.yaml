@@ -1,0 +1,67 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: splunk
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: splunk
+  namespace: splunk
+  labels:
+    app: splunk
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: splunk
+  template:
+    metadata:
+      labels:
+        app: splunk
+    spec:
+      volumes:
+        # Splunk Data
+        - name: data
+          hostPath:
+            path: /vol/splunk/data
+        # Splunk Config. Shared with config-backup container
+        - name: config
+          emptyDir: {}
+      containers:
+      - name: splunk
+        image: splunk/splunk:latest
+        env:
+          - name:  SPLUNK_START_ARGS
+            value: "--accept-license"
+          - name:  SPLUNK_PASSWORD
+            value: "Password!"
+        ports:
+          - name: web
+            containerPort: 8000
+          - name: mgmt
+            containerPort: 8089
+          - name: kv
+            containerPort: 8191
+          - name: indexing
+            containerPort: 9997
+        volumeMounts:
+          - name: data
+            mountPath: /opt/splunk/var
+          - name: config
+            mountPath: /opt/splunk/etc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: splunk-web
+  namespace: splunk
+spec:
+  type: NodePort
+  ports:
+  - name: web
+    port: 8000
+    targetPort: 8000
+  selector:
+    app: splunk
+        
